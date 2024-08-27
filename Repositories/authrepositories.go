@@ -162,17 +162,6 @@ func (at *AuthTokenImple) GetRefreshToken(ctx context.Context, userId string) (s
 	return token.RefreshToken, nil
 }
 
-func (at *AuthTokenImple) DeleteRefreshToken(ctx context.Context, token string) error {
-	filter := bson.D{bson.E{Key: "refresh_token", Value: token}}
-	result, err := at.tokencollection.DeleteOne(ctx, filter)
-	if err != nil {
-		return err
-	}
-	if result.DeletedCount == 0 {
-		return errs.ErrUnidentifiedToken
-	}
-	return nil
-}
 func (at *AuthUserImple) GetCollectionCount(ctx context.Context) (int64, error) {
 	count, err := at.usercollection.CountDocuments(ctx, bson.D{})
 	if err != nil {

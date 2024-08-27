@@ -46,20 +46,14 @@ func (uc *UserController) RegisterUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "successfully registered"})
 }
 
-func (uc *UserController) UpdateProfile(ctx *gin.Context) {
-	var user domain.User
+func (uc *UserController) GeteProfile(ctx *gin.Context) {
 	userid := ctx.Value("userID").(string)
 
-	if err := ctx.ShouldBindJSON(&user); err != nil {
-		ctx.JSON(http.StatusBadRequest, err.Error())
-	}
-	user.ID = userid
-
-	err := uc.authuserusecase.UpdateProfile(ctx, user)
+	userprofile, err := uc.authuserusecase.GetProfile(ctx, userid)
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, err.Error())
 	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "updated"})
+	ctx.JSON(http.StatusOK, gin.H{"message": userprofile})
 }
 
 func (uc *UserController) ActivateUser(ctx *gin.Context) {
@@ -73,8 +67,32 @@ func (uc *UserController) ActivateUser(ctx *gin.Context) {
 	ctx.JSON(http.StatusOK, gin.H{"message": "activated"})
 }
 
-func (uc *UserController) Logout(ctx *gin.Context) {
-	userid := ctx.Value("userID")
-	uc.authuserusecase.Logout(ctx, userid.(string))
-	ctx.JSON(http.StatusOK, gin.H{"message": "loged out successfully"})
+func (uc *UserController) ForgetPassword(ctx *gin.Context) {
+	var email domain.Email
+	if err := ctx.ShouldBindJSON(&email); err != nil {
+		ctx.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	err := uc.authuserusecase.ForgetPassword(ctx, email)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, err.Error())
+		return
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "reset email is sent"})
+}
+
+func (uc *UserController) ResetPassword(ctx *gin.Context) {
+	userid := ctx.Param("userid")
+	tokenTime := ctx.Param("tokentime")
+	token := ctx.Param("token")
+	var resetForm domain.ResetForm
+	if err := ctx.ShouldBindJSON(&resetForm); err != nil {
+		ctx.JSON(http.StatusBadRequest, err.Error())
+	}
+
+	err := uc.authuserusecase.ResetPassword(ctx, userid, tokenTime, token, resetForm.Passowrd, resetForm.NewPassword)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, err.Error())
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": "password reseted"})
 }

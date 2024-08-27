@@ -28,7 +28,18 @@ type LoginForm struct {
 	Username string `json:"username"`
 	Password string `json:"password"`
 }
-
+type Email struct {
+	User_email string `json:"email"`
+}
+type ResetForm struct {
+	Passowrd    string
+	NewPassword string
+}
+type Profile struct {
+	Name     string `json:"name"`
+	Username string `json:"username"`
+	Email    string `json:"email"`
+}
 type AuthRepository interface {
 	CreateUser(ctx context.Context, user User) (string, error)
 	UpdateUser(ctx context.Context, user User) (User, error)
@@ -39,16 +50,16 @@ type AuthRepository interface {
 	DeleteUser(ctx context.Context, id string) error
 	RegisterRefreshToken(ctx context.Context, userId string, token string) error
 	GetRefreshToken(ctx context.Context, token string) (string, error)
-	DeleteRefreshToken(ctx context.Context, token string) error
 	GetCollectionCount(ctx context.Context) (int64, error)
 }
 
 type AuthServices interface {
 	Login(ctx context.Context, info LoginForm) (string, string, error)
 	RegisterUser(ctx context.Context, user User) error
-	UpdateProfile(ctx context.Context, user User) error
 	Activate(ctx context.Context, userID string, token string) error
-	Logout(ctx context.Context, userID string)
 	GenerateToken(user User, tokentype string) (string, error)
 	GenerateActivateToken(hashedpassword string, updatedat time.Time) string
+	GetProfile(ctx context.Context, id string) (Profile, error)
+	ForgetPassword(ctx context.Context, email Email) error
+	ResetPassword(ctx context.Context, userid, tokenTime, token, password, newPassword string) error
 }

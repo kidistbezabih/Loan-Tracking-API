@@ -3,7 +3,10 @@ package auth
 import (
 	"context"
 	"crypto/sha1"
+	"crypto/sha256"
 	"encoding/base64"
+	"encoding/hex"
+	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -104,12 +107,16 @@ func (au *AuthUserUsecase) RegisterUser(ctx context.Context, user domain.User) e
 	return nil
 }
 
-func (au *AuthUserUsecase) UpdateProfile(ctx context.Context, user domain.User) error {
-	_, err := au.repository.UpdateUser(ctx, user)
+func (au *AuthUserUsecase) GetProfile(ctx context.Context, id string) (domain.Profile, error) {
+	var profile domain.Profile
+	user, err := au.repository.GetUserByID(ctx, id)
 	if err != nil {
-		return err
+		return domain.Profile{}, err
 	}
-	return nil
+	profile.Email = user.Email
+	profile.Username = user.Username
+	profile.Name = user.Name
+	return profile, err
 }
 
 func (au *AuthUserUsecase) Activate(ctx context.Context, userID string, token string) error {
@@ -131,14 +138,6 @@ func (au *AuthUserUsecase) Activate(ctx context.Context, userID string, token st
 		return err
 	}
 	return nil
-}
-
-func (au *AuthUserUsecase) Logout(ctx context.Context, userID string) {
-	token, err := au.repository.GetRefreshToken(ctx, userID)
-	if err != nil {
-		return
-	}
-	au.repository.DeleteRefreshToken(ctx, token)
 }
 
 func (au *AuthUserUsecase) GenerateActivateToken(hashedpassword string, updatedat time.Time) string {
@@ -172,5 +171,39 @@ func (au *AuthUserUsecase) GenerateToken(user domain.User, tokenType string) (st
 		return "", err
 	}
 	return tokenString, nil
+}
 
+func (au *AuthUserUsecase) ForgetPassword(ctx context.Context, email domain.Email) error {
+	user, err := au.repository.GetUserByEmail(ctx, email.User_email)
+	if err != nil {
+		return errs.ErrNoUserWithEmail
+	}
+	currenttime := time.Now().String()
+	token := au.GenerateTokenForReset(ctx, user.UpdatedAt.String(), user.Password, currenttime)
+
+	URLSafe := base64.URLEncoding.EncodeToString([]byte(currenttime))
+	// send the token to that email
+	from := os.Getenv("FROM")
+	link := fmt.Sprintf("http://localhost:8000/v1/auth/reset/%s/%s/%s", user.ID, URLSafe, token)
+	au.emailService.SendEmail(from, email.User_email, fmt.Sprintf("click the link to activate your password %s ", link), "Reset password")
+	return nil
+}
+
+func (au *AuthUserUsecase) GenerateTokenForReset(ctx context.Context, updatedat, hashedpassword, currenttime string) string {
+	data := hashedpassword + updatedat + currenttime
+	hash := sha256.New()
+	hash.Write([]byte(data))
+	token := hex.EncodeToString(hash.Sum(nil))
+
+	return token
+}
+
+func (au *AuthUserUsecase) ResetPassword(ctx context.Context, userid, tokenTime, token, password, newPassword string) error {
+	user, _ := au.repository.GetUserByID(ctx, userid)
+
+	expectedToken := au.GenerateTokenForReset(ctx, user.UpdatedAt.String(), user.Password, tokenTime)
+	if expectedToken != token {
+		return errors.New("some error")
+	}
+	return nil
 }
