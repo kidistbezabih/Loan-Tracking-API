@@ -12,6 +12,11 @@ type LoanUsecases struct {
 	loanrepositories domain.LoanRepository
 }
 
+func NewLoanUsecases(loanrepositories domain.LoanRepository) domain.LoanServices {
+	return &LoanUsecases{
+		loanrepositories: loanrepositories,
+	}
+}
 func (lu *LoanUsecases) ApplyForLoan(ctx context.Context, loanform domain.LoanApplication) error {
 	var loan domain.Loan
 	loan.ID = primitive.NewObjectID().Hex()

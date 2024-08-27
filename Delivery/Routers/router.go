@@ -24,9 +24,9 @@ func SetUpAuthRouter(r *gin.RouterGroup, userController *controllers.UserControl
 }
 func SetUpLoanRouter(r *gin.RouterGroup, loanController *controllers.LoanController) {
 	r.POST("/", loanController.ApplyForLoan)
-	r.POST("/:id", loanController.ViewLoanStatus)
+	r.POST("/my-status", loanController.ViewLoanStatus)
 	r.PUT("/all-loans", infrastructure.AuthMiddleware(), loanController.ViewLoans)
-	r.POST("/approve-status", loanController.ApproveLoanStatus)
-	r.POST("/reject-status", loanController.RejectLoanStatus)
+	r.POST("/approve-status", infrastructure.AuthMiddleware(), loanController.ApproveLoanStatus)
+	r.POST("/reject-status", infrastructure.AuthMiddleware(), loanController.RejectLoanStatus)
 	r.POST("/delete:id", infrastructure.AdminMidleware(), loanController.DeleteLoan)
 }

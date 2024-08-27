@@ -6,7 +6,7 @@ import (
 )
 
 type Loan struct {
-	ID        string    `json:"id,omitempty" bson:"_id"`
+	ID        string    `json:"loanid,omitempty" bson:"_id"`
 	UserId    string    `json:"user"`
 	Amount    int64     `json:"amount"`
 	Status    string    `json:"status"`

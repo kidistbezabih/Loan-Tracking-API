@@ -90,7 +90,6 @@ func (au *AuthUserUsecase) RegisterUser(ctx context.Context, user domain.User) e
 	}
 	if count == 0 {
 		user.IsAdmin = true
-		user.IsSupper = true
 	}
 	id, err := au.repository.CreateUser(ctx, user)
 	if err != nil {

@@ -33,9 +33,9 @@ func (lc *LoanController) ApplyForLoan(ctx *gin.Context) {
 }
 
 func (lc *LoanController) ViewLoanStatus(ctx *gin.Context) {
-	loanid := ctx.Param("loanid")
+	loanid := ctx.Value("loanid")
 
-	userprofile, err := lc.loanservices.ViewLoanStatus(ctx, loanid)
+	userprofile, err := lc.loanservices.ViewLoanStatus(ctx, loanid.(string))
 	if err != nil {
 		ctx.JSON(http.StatusNotFound, err.Error())
 	}

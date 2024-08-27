@@ -13,7 +13,6 @@ type User struct {
 	Password  string    `json:"password"`
 	IsActive  bool      `json:"isactive"`
 	IsAdmin   bool      `json:"isadmin"`
-	IsSupper  bool      `json:"issuper"`
 	CreatedAt time.Time `json:"createdat"`
 	UpdatedAt time.Time `json:"updatedat"`
 }
