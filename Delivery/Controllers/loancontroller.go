@@ -11,10 +11,11 @@ type LoanController struct {
 	loanservices domain.LoanServices
 }
 
-func NewLoanController(loanservices domain.LoanServices) LoanController {
-	return LoanController{
+func NewLoanController(loanservices domain.LoanServices) *LoanController {
+	return &LoanController{
 		loanservices: loanservices,
 	}
+
 }
 
 func (lc *LoanController) ApplyForLoan(ctx *gin.Context) {

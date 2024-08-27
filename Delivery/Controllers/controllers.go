@@ -15,6 +15,7 @@ func NewUserController(authServices domain.AuthServices) *UserController {
 	return &UserController{
 		authuserusecase: authServices,
 	}
+
 }
 
 func (uc *UserController) Login(ctx *gin.Context) {

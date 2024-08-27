@@ -52,8 +52,7 @@ func AdminMidleware() gin.HandlerFunc {
 	}
 }
 
-// 		c.Set("loan_id", tokenClaim["loanid"])
-
+// c.Set("loan_id", tokenClaim["loanid"])
 func validateSigningMethod(token *jwt.Token) (interface{}, error) {
 	return []byte(os.Getenv("SECRET_KEY")), nil
 }

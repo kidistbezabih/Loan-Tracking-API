@@ -40,7 +40,7 @@ func main() {
 	mongoDB := mongoClient.Database(os.Getenv("MONGO_DB"))
 
 	authRepository := repositories.NewAuthStorage(mongoDB.Collection("users"), mongoDB.Collection("tokens"))
-	// loanrepo := repositories.NewLoanRepoImple(mongoDB.Collection("loans"))
+	loanrepo := repositories.NewLoanRepoImple(mongoDB.Collection("loans"))
 
 	authUsecase := auth.NewAuthUserUsecase(authRepository, infrastructure.NewEmail(
 		os.Getenv("EMAIL_USERNAME"),
@@ -48,10 +48,10 @@ func main() {
 		os.Getenv("SMTP_HOST"),
 		os.Getenv("SMTP_PORT"),
 	))
-	// authUsecase := auth.NewLoanUsecases(loanrepo, authRepository)
+	loanUsecase := auth.NewLoanUsecases(loanrepo)
 
 	authController := controllers.NewUserController(authUsecase)
-	loanController := controllers.NewUserController(authUsecase)
+	loanController := controllers.NewLoanController(loanUsecase)
 
 	routers.SetUpRouter(r, authController, loanController)
 
