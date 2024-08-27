@@ -4,7 +4,6 @@ import (
 	"context"
 	"crypto/sha1"
 	"encoding/base64"
-	"errors"
 	"fmt"
 	"os"
 	"strings"
@@ -174,41 +173,4 @@ func (au *AuthUserUsecase) GenerateToken(user domain.User, tokenType string) (st
 	}
 	return tokenString, nil
 
-}
-
-func (au *AuthUserUsecase) PromoteUser(ctx context.Context, userID string) error {
-	user, err := au.repository.GetUserByID(ctx, userID)
-	if err != nil {
-		return err
-	}
-	if !user.IsAdmin {
-		user.IsAdmin = true
-	} else {
-		return errors.New("the user was an admin")
-	}
-	_, err = au.repository.UpdateUser(ctx, user)
-
-	if err != nil {
-		return err
-	}
-	return nil
-}
-
-func (au *AuthUserUsecase) DemoteUser(ctx context.Context, userID string) error {
-	user, err := au.repository.GetUserByID(ctx, userID)
-	if err != nil {
-		return err
-	}
-
-	if !user.IsSupper {
-		user.IsAdmin = false
-	} else {
-		return errors.New("you don't have the previlage to delete this super admin ")
-	}
-	_, err = au.repository.UpdateUser(ctx, user)
-
-	if err != nil {
-		return err
-	}
-	return nil
 }

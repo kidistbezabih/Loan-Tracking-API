@@ -4,20 +4,21 @@ import (
 	"net/http"
 
 	"github.com/gin-gonic/gin"
+	domain "github.com/kidistbezabih/loan-tracker-api/Domain"
 )
 
 type UserController struct {
-	authuserusecase auth.AuthServices
+	authuserusecase domain.AuthServices
 }
 
-func NewUserController(authServices auth.AuthServices) *UserController {
+func NewUserController(authServices domain.AuthServices) *UserController {
 	return &UserController{
 		authuserusecase: authServices,
 	}
 }
 
 func (uc *UserController) Login(ctx *gin.Context) {
-	var userInfo auth.LoginForm
+	var userInfo domain.LoginForm
 	if err := ctx.ShouldBindJSON(&userInfo); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"error": err.Error()})
 		return
@@ -31,7 +32,7 @@ func (uc *UserController) Login(ctx *gin.Context) {
 }
 
 func (uc *UserController) RegisterUser(ctx *gin.Context) {
-	var user auth.User
+	var user domain.User
 
 	if err := ctx.ShouldBindJSON(&user); err != nil {
 		ctx.JSON(http.StatusBadRequest, gin.H{"message": err.Error()})
@@ -46,7 +47,7 @@ func (uc *UserController) RegisterUser(ctx *gin.Context) {
 }
 
 func (uc *UserController) UpdateProfile(ctx *gin.Context) {
-	var user auth.User
+	var user domain.User
 	userid := ctx.Value("userID").(string)
 
 	if err := ctx.ShouldBindJSON(&user); err != nil {
@@ -76,28 +77,4 @@ func (uc *UserController) Logout(ctx *gin.Context) {
 	userid := ctx.Value("userID")
 	uc.authuserusecase.Logout(ctx, userid.(string))
 	ctx.JSON(http.StatusOK, gin.H{"message": "loged out successfully"})
-}
-
-func (uc *UserController) PromoteUser(ctx *gin.Context) {
-	userID := ctx.Param("userid")
-	err := uc.authuserusecase.PromoteUser(ctx, userID)
-
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": " un able to promote user"})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "promored "})
-
-}
-
-func (uc *UserController) DemoteUser(ctx *gin.Context) {
-	userID := ctx.Param("userid")
-	err := uc.authuserusecase.DemoteUser(ctx, userID)
-
-	if err != nil {
-		ctx.JSON(http.StatusBadRequest, gin.H{"message": " unable to demote user"})
-		return
-	}
-	ctx.JSON(http.StatusOK, gin.H{"message": "demoted "})
-
 }
