@@ -32,4 +32,5 @@ type LoanServices interface {
 	ApproveLoanStatus(ctx context.Context, id string) error
 	RejectLoanStatus(ctx context.Context, id string) error
 	DeleteLoan(ctx context.Context, id string) error
+	ViewLoans(ctx context.Context) ([]Loan, error)
 }

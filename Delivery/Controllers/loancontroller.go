@@ -71,3 +71,11 @@ func (lc *LoanController) DeleteLoan(ctx *gin.Context) {
 	}
 	ctx.JSON(http.StatusOK, gin.H{"message": "successfully deleted"})
 }
+
+func (lc *LoanController) ViewLoans(ctx *gin.Context) {
+	loans, err := lc.loanservices.ViewLoans(ctx)
+	if err != nil {
+		ctx.JSON(http.StatusBadRequest, err.Error())
+	}
+	ctx.JSON(http.StatusOK, gin.H{"message": loans})
+}
