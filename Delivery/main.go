@@ -53,7 +53,7 @@ func main() {
 	authController := controllers.NewUserController(authUsecase)
 	loanController := controllers.NewUserController(authUsecase)
 
-	routers.SetUpRouter(r, loanController, authController)
+	routers.SetUpRouter(r, authController, loanController)
 
 	r.Run(getHost())
 }
