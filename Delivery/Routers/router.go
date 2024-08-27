@@ -17,5 +17,5 @@ func SetUpAuthRouter(r *gin.RouterGroup, userController *controllers.UserControl
 	r.PUT("/profile", infrastructure.AuthMiddleware(), userController.GeteProfile)
 	r.POST("/verify/:userID/:token", userController.ActivateUser)
 	r.POST("/forget-password", userController.ForgetPassword)
-	r.POST("/reset", AuthMiddleware(), userController.ResetPassword)
+	r.POST("/reset", infrastructure.AdminMidleware(), userController.ResetPassword)
 }
