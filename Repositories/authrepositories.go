@@ -54,6 +54,10 @@ func (au *AuthUserImple) UpdateUser(ctx context.Context, user domain.User) (doma
 		{Key: "name", Value: user.Name},
 		{Key: "username", Value: user.Username},
 		{Key: "email", Value: user.Email},
+		{Key: "isactive", Value: user.IsActive},
+		{Key: "isadmin", Value: user.IsAdmin},
+		{Key: "createdat", Value: user.CreatedAt},
+		{Key: "updatedat", Value: user.UpdatedAt},
 	}}}
 
 	result, err := au.usercollection.UpdateOne(ctx, filter, update)
@@ -118,16 +122,15 @@ func (au *AuthUserImple) GetUsers(ctx context.Context) ([]domain.User, error) {
 	if err != nil {
 		return []domain.User{}, err
 	}
-	cursor.All(ctx, users)
 
-	if err := cursor.Err(); err != nil {
-		return []domain.User{}, errs.ErrCursorDuringItr
+	if err := cursor.All(ctx, &users); err != nil {
+		return []domain.User{}, err
 	}
 	return users, nil
 }
 
 func (au *AuthUserImple) DeleteUser(ctx context.Context, id string) error {
-	filter := bson.D{bson.E{Key: "id", Value: id}}
+	filter := bson.D{bson.E{Key: "_id", Value: id}}
 	result, err := au.usercollection.DeleteOne(ctx, filter)
 
 	if err != nil {

@@ -17,10 +17,11 @@ func NewLoanUsecases(loanrepositories domain.LoanRepository) domain.LoanServices
 		loanrepositories: loanrepositories,
 	}
 }
-func (lu *LoanUsecases) ApplyForLoan(ctx context.Context, loanform domain.LoanApplication) error {
+func (lu *LoanUsecases) ApplyForLoan(ctx context.Context, loanform domain.LoanApplication, userid string) error {
 	var loan domain.Loan
 	loan.ID = primitive.NewObjectID().Hex()
-	loan.UserId = loanform.UserId
+	loan.UserId = userid
+	loan.Amount = loanform.Amount
 	loan.Status = "pending"
 	loan.CreatedAt = time.Now()
 	loan.UpdatedAt = time.Now()
@@ -40,8 +41,8 @@ func (lu *LoanUsecases) ViewLoanStatus(ctx context.Context, id string) (string, 
 	return loan.Status, nil
 }
 
-func (lu *LoanUsecases) ViewLoans(ctx context.Context) ([]domain.Loan, error) {
-	loans, err := lu.loanrepositories.FindLoans(ctx)
+func (lu *LoanUsecases) ViewLoans(ctx context.Context, userid string) ([]domain.Loan, error) {
+	loans, err := lu.loanrepositories.FindLoans(ctx, userid)
 	if err != nil {
 		return []domain.Loan{}, err
 	}

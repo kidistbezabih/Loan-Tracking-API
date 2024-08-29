@@ -14,25 +14,26 @@ func AuthMiddleware() gin.HandlerFunc {
 		authHeader := c.GetHeader("Authorization")
 
 		if authHeader == "" {
-			c.JSON(http.StatusInternalServerError, gin.H{"message": "auth header"})
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "authorization header is missing"})
 			c.Abort()
 			return
 		}
 		authParts := strings.Split(authHeader, " ")
 		if len(authParts) != 2 || strings.ToLower(authParts[0]) != "bearer" {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "unautorized access"})
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "unautorized access for user"})
 			c.Abort()
 			return
 		}
 		tokenClaim := jwt.MapClaims{}
 		_, err := jwt.ParseWithClaims(authParts[1], tokenClaim, validateSigningMethod)
 		if err != nil {
-			c.JSON(http.StatusUnauthorized, err.Error())
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "invalid token"})
 			c.Abort()
 			return
 		}
 		c.Set("user_id", tokenClaim["id"])
 		c.Set("is_admin", tokenClaim["isadmin"])
+		c.Set("user_id", tokenClaim["id"])
 		c.Next()
 	}
 }
@@ -41,10 +42,10 @@ func AdminMidleware() gin.HandlerFunc {
 	return func(c *gin.Context) {
 		// uses_name, user_exist := c.Get("userame")
 		role, role_exist := c.Get("is_admin")
-		roleParsed := role.(bool)
+		roleParsed, ok := role.(bool)
 
-		if !role_exist || !roleParsed {
-			c.JSON(http.StatusUnauthorized, gin.H{"message": "unautorized access"})
+		if !role_exist || !ok || !roleParsed {
+			c.JSON(http.StatusUnauthorized, gin.H{"message": "unautorized access of admin"})
 			c.Abort()
 			return
 		}

@@ -30,28 +30,27 @@ func (lr *LoanReposImple) CreateLoan(ctx context.Context, loan domain.Loan) erro
 func (lr *LoanReposImple) FindLoanById(ctx context.Context, id string) (domain.Loan, error) {
 	var loan domain.Loan
 
-	filter := bson.D{bson.E{Key: "username", Value: id}}
+	filter := bson.D{bson.E{Key: "_id", Value: id}}
 	err := lr.loanCollection.FindOne(ctx, filter).Decode(&loan)
 
 	if err != nil {
-		return domain.Loan{}, errs.ErrNoUserWithUsername
+		return domain.Loan{}, errs.ErrNoUserWithId
 	}
 	return loan, nil
 }
 
-func (lr *LoanReposImple) FindLoans(ctx context.Context) ([]domain.Loan, error) {
+func (lr *LoanReposImple) FindLoans(ctx context.Context, userid string) ([]domain.Loan, error) {
 	var loans []domain.Loan
 
-	filter := bson.D{}
+	filter := bson.D{bson.E{Key: "userid", Value: userid}}
 	cursor, err := lr.loanCollection.Find(ctx, filter)
-
 	if err != nil {
-		return []domain.Loan{}, err
+		return nil, err
 	}
-	cursor.All(ctx, loans)
+	defer cursor.Close(ctx) // Ensure the cursor is closed after the operation
 
-	if err := cursor.Err(); err != nil {
-		return []domain.Loan{}, errs.ErrCursorDuringItr
+	if err := cursor.All(ctx, &loans); err != nil {
+		return nil, err
 	}
 	return loans, nil
 }

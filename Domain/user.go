@@ -31,8 +31,8 @@ type Email struct {
 	User_email string `json:"email"`
 }
 type ResetForm struct {
-	Passowrd    string
-	NewPassword string
+	Passowrd    string `json:"password"`
+	NewPassword string `json:"newpassword"`
 }
 type Profile struct {
 	Name     string `json:"name"`
@@ -57,8 +57,10 @@ type AuthServices interface {
 	RegisterUser(ctx context.Context, user User) error
 	Activate(ctx context.Context, userID string, token string) error
 	GenerateToken(user User, tokentype string) (string, error)
-	GenerateActivateToken(hashedpassword string, updatedat time.Time) string
+	GenerateActivateToken(hashedpassword string) string
 	GetProfile(ctx context.Context, id string) (Profile, error)
 	ForgetPassword(ctx context.Context, email Email) error
-	ResetPassword(ctx context.Context, userid, tokenTime, token, password, newPassword string) error
+	ResetPassword(ctx context.Context, userid, token, password, newPassword string) error
+	GetUsers(ctx context.Context) ([]User, error)
+	DeleteUser(ctx context.Context, id string) error
 }

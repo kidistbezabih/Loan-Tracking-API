@@ -81,8 +81,8 @@ func (au *AuthUserUsecase) RegisterUser(ctx context.Context, user domain.User) e
 	user.Email = strings.ToLower(user.Email)
 	// user.IsAdmin = false	activationLink := fmt.Sprintf("http://localhost/activate/%s/%s", user.ID, tokenString)
 
-	user.CreatedAt = time.Now()
-	user.UpdatedAt = time.Now()
+	user.CreatedAt = time.Now().UTC()
+	user.UpdatedAt = time.Now().UTC()
 	// if the user is first user is make it admin and super admin
 	count, err := au.repository.GetCollectionCount(ctx)
 	if err != nil {
@@ -96,9 +96,10 @@ func (au *AuthUserUsecase) RegisterUser(ctx context.Context, user domain.User) e
 		return errs.ErrCantCreateUser
 	}
 	user.ID = id
+	// u, e := au.repository.GetUserByID(ctx, id)
 
 	from := os.Getenv("FROM")
-	tokenString := au.GenerateActivateToken(user.Password, user.UpdatedAt)
+	tokenString := au.GenerateActivateToken(user.Password)
 
 	activationLink := fmt.Sprintf("http://localhost/activate/%s/%s", user.ID, tokenString)
 	au.emailService.SendEmail(from, user.Email, fmt.Sprintf("click the link to activate you account %s", activationLink), "Account Activation")
@@ -123,24 +124,25 @@ func (au *AuthUserUsecase) Activate(ctx context.Context, userID string, token st
 	if err != nil {
 		return err
 	}
-	expectedToken := au.GenerateActivateToken(user.Password, user.UpdatedAt)
+	expectedToken := au.GenerateActivateToken(user.Password)
 
 	if expectedToken != token {
-		return err
+		return errors.New("invalid token")
 	}
-
 	user.IsActive = true
-	user.UpdatedAt = time.Now()
+	user.UpdatedAt = time.Now().UTC()
 
-	_, err = au.repository.UpdateUser(ctx, user)
+	user, err = au.repository.UpdateUser(ctx, user)
+	fmt.Print("are equal", user.IsActive)
+
 	if err != nil {
 		return err
 	}
 	return nil
 }
 
-func (au *AuthUserUsecase) GenerateActivateToken(hashedpassword string, updatedat time.Time) string {
-	token := hashedpassword + updatedat.String()
+func (au *AuthUserUsecase) GenerateActivateToken(hashedpassword string) string {
+	token := hashedpassword
 	hasher := sha1.New()
 	hasher.Write([]byte(token))
 
@@ -178,18 +180,18 @@ func (au *AuthUserUsecase) ForgetPassword(ctx context.Context, email domain.Emai
 		return errs.ErrNoUserWithEmail
 	}
 	currenttime := time.Now().String()
-	token := au.GenerateTokenForReset(ctx, user.UpdatedAt.String(), user.Password, currenttime)
+	token := au.GenerateTokenForReset(ctx, user.Password)
 
 	URLSafe := base64.URLEncoding.EncodeToString([]byte(currenttime))
 	// send the token to that email
 	from := os.Getenv("FROM")
-	link := fmt.Sprintf("http://localhost:8000/v1/auth/reset/%s/%s/%s", user.ID, URLSafe, token)
+	link := fmt.Sprintf("http://localhost:8000/v1/users/reset/%s/%s/%s", user.ID, URLSafe, token)
 	au.emailService.SendEmail(from, email.User_email, fmt.Sprintf("click the link to activate your password %s ", link), "Reset password")
 	return nil
 }
 
-func (au *AuthUserUsecase) GenerateTokenForReset(ctx context.Context, updatedat, hashedpassword, currenttime string) string {
-	data := hashedpassword + updatedat + currenttime
+func (au *AuthUserUsecase) GenerateTokenForReset(ctx context.Context, hashedpassword string) string {
+	data := hashedpassword
 	hash := sha256.New()
 	hash.Write([]byte(data))
 	token := hex.EncodeToString(hash.Sum(nil))
@@ -197,12 +199,29 @@ func (au *AuthUserUsecase) GenerateTokenForReset(ctx context.Context, updatedat,
 	return token
 }
 
-func (au *AuthUserUsecase) ResetPassword(ctx context.Context, userid, tokenTime, token, password, newPassword string) error {
+func (au *AuthUserUsecase) ResetPassword(ctx context.Context, userid, token, password, newPassword string) error {
 	user, _ := au.repository.GetUserByID(ctx, userid)
 
-	expectedToken := au.GenerateTokenForReset(ctx, user.UpdatedAt.String(), user.Password, tokenTime)
+	expectedToken := au.GenerateTokenForReset(ctx, user.Password)
 	if expectedToken != token {
 		return errors.New("some error")
+	}
+	return nil
+}
+
+func (au *AuthUserUsecase) GetUsers(ctx context.Context) ([]domain.User, error) {
+	users, err := au.repository.GetUsers(ctx)
+	if err != nil {
+		return []domain.User{}, err
+	}
+
+	return users, nil
+}
+
+func (au *AuthUserUsecase) DeleteUser(ctx context.Context, id string) error {
+	err := au.repository.DeleteUser(ctx, id)
+	if err != nil {
+		return err
 	}
 	return nil
 }

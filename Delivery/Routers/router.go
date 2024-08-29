@@ -17,16 +17,19 @@ func SetUpRouter(r *gin.Engine, userController *controllers.UserController, loan
 func SetUpAuthRouter(r *gin.RouterGroup, userController *controllers.UserController) {
 	r.POST("/register", userController.RegisterUser)
 	r.POST("/login", userController.Login)
-	r.PUT("/profile", infrastructure.AuthMiddleware(), userController.GeteProfile)
-	r.POST("/verify/:userID/:token", userController.ActivateUser)
-	r.POST("/forget-password", userController.ForgetPassword)
-	r.POST("/reset", infrastructure.AdminMidleware(), userController.ResetPassword)
+	r.GET("/profile", infrastructure.AuthMiddleware(), userController.GeteProfile)
+	r.GET("/activate/:userID/:token", userController.ActivateUser)
+	r.GET("/forget-password", userController.ForgetPassword)
+	r.PUT("/reset/:userid/:tokentime/:token", userController.ResetPassword)
+	r.GET("/all-users", infrastructure.AuthMiddleware(), infrastructure.AdminMidleware(), userController.GetUsers)
+	r.GET("/delete/:id", infrastructure.AuthMiddleware(), infrastructure.AdminMidleware(), userController.DeleteUser)
 }
+
 func SetUpLoanRouter(r *gin.RouterGroup, loanController *controllers.LoanController) {
-	r.POST("/", loanController.ApplyForLoan)
-	r.POST("/my-status", loanController.ViewLoanStatus)
-	r.PUT("/all-loans", infrastructure.AuthMiddleware(), loanController.ViewLoans)
-	r.POST("/approve-status/:id", infrastructure.AuthMiddleware(), loanController.ApproveLoanStatus)
-	r.POST("/reject-status/:id", infrastructure.AuthMiddleware(), loanController.RejectLoanStatus)
-	r.POST("/delete:id", infrastructure.AdminMidleware(), loanController.DeleteLoan)
+	r.POST("/", infrastructure.AuthMiddleware(), loanController.ApplyForLoan)
+	r.GET("/loan-status/:loanid", infrastructure.AuthMiddleware(), loanController.ViewLoanStatus)
+	r.GET("/all-loans", infrastructure.AuthMiddleware(), infrastructure.AdminMidleware(), loanController.ViewLoans)
+	r.PUT("/approve-status/:loanid", infrastructure.AuthMiddleware(), loanController.ApproveLoanStatus)
+	r.PUT("/reject-status/:loanid", infrastructure.AuthMiddleware(), loanController.RejectLoanStatus)
+	r.DELETE("/delete:id", infrastructure.AdminMidleware(), loanController.DeleteLoan)
 }
